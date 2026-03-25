@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 보험 추천 — 김민준</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+KR:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f7f6f2;
+  --surface: #ffffff;
+  --surface2: #f0ede6;
+  --border: #e2ddd6;
+  --border2: #ccc8c0;
+  --ink: #1a1714;
+  --ink2: #4a4540;
+  --ink3: #8a8480;
+  --accent: #c8420a;
+  --accent-light: #fdf0eb;
+  --gold: #b8860b;
+  --gold-light: #fdf8e8;
+  --green: #1a6b3c;
+  --green-light: #eaf4ef;
+  --blue: #1a4a7a;
+  --blue-light: #eaf0f8;
+  --rank1: #c8420a;
+  --rank2: #1a4a7a;
+  --rank3: #1a6b3c;
+  --rank4: #7a4a1a;
+  --rank5: #5a1a6b;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Noto Sans KR', sans-serif;
+  min-height: 100vh;
+}
+
+/* 상단 헤더 */
+.header {
+  background: var(--ink);
+  color: white;
+  padding: 20px 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.header-eyebrow {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: rgba(255,255,255,0.4);
+  text-transform: uppercase;
+}
+
+.header-title {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.header-right {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: rgba(255,255,255,0.35);
+  text-align: right;
+  line-height: 1.8;
+}
+
+/* 메인 레이아웃 */
+.page {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 0;
+  min-height: calc(100vh - 72px);
+}
+
+/* 왼쪽 사이드바 */
+.sidebar {
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  padding: 32px 24px;
+  position: sticky;
+  top: 0;
+  height: calc(100vh - 72px);
+  overflow-y: auto;
+}
+
+.profile-card {
+  margin-bottom: 28px;
+}
+
+.profile-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.avatar {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: white;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.profile-name {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.profile-sub {
+  font-size: 12px;
+  color: var(--ink3);
+  margin-top: 2px;
+}
+
+.section-title {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  margin-bottom: 10px;
+}
+
+.info-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-bottom: 20px;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 12.5px;
+}
+
+.info-item:last-child { border-bottom: none; }
+
+.info-key { color: var(--ink3); flex-shrink: 0; }
+.info-val { color: var(--ink); font-weight: 500; text-align: right; }
+.info-val.danger { color: #c8420a; }
+.info-val.warn { color: #b8860b; }
+.info-val.ok { color: #1a6b3c; }
+
+.tag-group {
+  display: flex; flex-wrap: wrap; gap: 5px;
+  margin-bottom: 20px;
+}
+
+.chip {
+  font-size: 11px;
+  padding: 3px 9px;
+  border-radius: 3px;
+  font-weight: 500;
+  border: 1px solid;
+}
+
+.chip.risk {
+  background: #fdf0eb;
+  color: #c8420a;
+  border-color: #f0c0a8;
+}
+
+.chip.need {
+  background: #eaf0f8;
+  color: #1a4a7a;
+  border-color: #b0c8e8;
+}
+
+.ai-insight {
+  background: var(--ink);
+  color: white;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.ai-insight-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  color: rgba(255,255,255,0.4);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.ai-insight p {
+  font-size: 12px;
+  line-height: 1.75;
+  color: rgba(255,255,255,0.75);
+  font-weight: 300;
+}
+
+.ai-insight p strong {
+  color: white;
+  font-weight: 600;
+}
+
+/* 오른쪽 메인 */
+.main {
+  padding: 32px 40px;
+}
+
+/* 순위 결정 근거 박스 */
+.ranking-rationale {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px 24px;
+  margin-bottom: 28px;
+}
+
+.rationale-title {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rationale-title::before {
+  content: '';
+  width: 3px; height: 16px;
+  background: var(--accent);
+  border-radius: 2px;
+  display: inline-block;
+}
+
+.rationale-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.rationale-item {
+  padding: 12px 14px;
+  background: var(--bg);
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+.rationale-item-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 5px;
+  font-family: 'IBM Plex Mono', monospace;
+  letter-spacing: 0.05em;
+}
+
+.rationale-item p {
+  font-size: 12px;
+  color: var(--ink2);
+  line-height: 1.65;
+}
+
+/* 카드 */
+.card-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  transition: box-shadow 0.2s;
+  animation: fadeUp 0.4s ease both;
+}
+
+.card:nth-child(1) { animation-delay: 0.05s; }
+.card:nth-child(2) { animation-delay: 0.1s; }
+.card:nth-child(3) { animation-delay: 0.15s; }
+.card:nth-child(4) { animation-delay: 0.2s; }
+.card:nth-child(5) { animation-delay: 0.25s; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.card:hover {
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+}
+
+/* 카드 상단 줄 */
+.card-top-stripe {
+  height: 3px;
+}
+
+.card:nth-child(1) .card-top-stripe { background: var(--rank1); }
+.card:nth-child(2) .card-top-stripe { background: var(--rank2); }
+.card:nth-child(3) .card-top-stripe { background: var(--rank3); }
+.card:nth-child(4) .card-top-stripe { background: var(--rank4); }
+.card:nth-child(5) .card-top-stripe { background: var(--rank5); }
+
+.card-header {
+  display: grid;
+  grid-template-columns: 80px 1fr auto;
+  align-items: center;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--border);
+  gap: 16px;
+}
+
+/* 순위 뱃지 */
+.rank-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.rank-num {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.card:nth-child(1) .rank-num { color: var(--rank1); }
+.card:nth-child(2) .rank-num { color: var(--rank2); }
+.card:nth-child(3) .rank-num { color: var(--rank3); }
+.card:nth-child(4) .rank-num { color: var(--rank4); }
+.card:nth-child(5) .rank-num { color: var(--rank5); }
+
+.rank-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--ink3);
+  text-transform: uppercase;
+}
+
+/* 상품 정보 */
+.product-type {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--ink3);
+  margin-bottom: 4px;
+}
+
+.product-name {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+
+.product-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.ptag {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-weight: 500;
+}
+
+.ptag.good {
+  background: var(--green-light);
+  color: var(--green);
+  border: 1px solid #b8dfc9;
+}
+
+.ptag.caution {
+  background: var(--gold-light);
+  color: var(--gold);
+  border: 1px solid #e0d090;
+}
+
+.ptag.neutral {
+  background: var(--blue-light);
+  color: var(--blue);
+  border: 1px solid #a0bcd8;
+}
+
+/* 핏 스코어 */
+.fit-block {
+  text-align: center;
+  min-width: 80px;
+}
+
+.fit-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--ink3);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.fit-score {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.card:nth-child(1) .fit-score { color: var(--rank1); }
+.card:nth-child(2) .fit-score { color: var(--rank2); }
+.card:nth-child(3) .fit-score { color: var(--rank3); }
+.card:nth-child(4) .fit-score { color: var(--rank4); }
+.card:nth-child(5) .fit-score { color: var(--rank5); }
+
+.fit-score span { font-size: 13px; color: var(--ink3); font-family: 'Noto Sans KR'; font-weight: 400; }
+
+/* 카드 바디 — 4열 그리드 */
+.card-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 0;
+}
+
+.card-section {
+  padding: 16px 18px;
+  border-right: 1px solid var(--border);
+}
+
+.card-section:last-child {
+  border-right: none;
+}
+
+.cs-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.cs-label .dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.card:nth-child(1) .dot { background: var(--rank1); }
+.card:nth-child(2) .dot { background: var(--rank2); }
+.card:nth-child(3) .dot { background: var(--rank3); }
+.card:nth-child(4) .dot { background: var(--rank4); }
+.card:nth-child(5) .dot { background: var(--rank5); }
+
+.cs-text {
+  font-size: 12.5px;
+  color: var(--ink2);
+  line-height: 1.7;
+  font-weight: 300;
+}
+
+.cs-text strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.cs-text .highlight {
+  background: #fff8e8;
+  padding: 1px 4px;
+  border-radius: 2px;
+  color: #8a5a00;
+  font-weight: 500;
+}
+
+/* 지표 작은 테이블 */
+.metric-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.metric-table tr td {
+  font-size: 12px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+.metric-table tr:last-child td {
+  border-bottom: none;
+}
+
+.metric-table td:first-child {
+  color: var(--ink3);
+  padding-right: 8px;
+  white-space: nowrap;
+}
+
+.metric-table td:last-child {
+  color: var(--ink);
+  font-weight: 500;
+  text-align: right;
+}
+
+/* 적합도 바 */
+.score-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.score-bar-item {}
+
+.score-bar-head {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.score-bar-name {
+  font-size: 11px;
+  color: var(--ink3);
+}
+
+.score-bar-pct {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--ink2);
+  font-weight: 500;
+}
+
+.score-track {
+  height: 5px;
+  background: var(--surface2);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.score-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.8s ease;
+}
+
+.card:nth-child(1) .score-fill { background: var(--rank1); }
+.card:nth-child(2) .score-fill { background: var(--rank2); }
+.card:nth-child(3) .score-fill { background: var(--rank3); }
+.card:nth-child(4) .score-fill { background: var(--rank4); }
+.card:nth-child(5) .score-fill { background: var(--rank5); }
+
+/* 카드 하단 — 1순위 보장 펼침 */
+.card-expanded {
+  padding: 14px 18px;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+}
+
+.expanded-header {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  margin-bottom: 10px;
+}
+
+.coverage-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.cov-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 8px 12px;
+}
+
+.cov-type {
+  font-size: 11px;
+  color: var(--ink3);
+}
+
+.cov-sep {
+  width: 1px; height: 12px;
+  background: var(--border);
+}
+
+.cov-amount {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+/* 주의 배너 */
+.disclaimer {
+  margin-top: 24px;
+  padding: 14px 18px;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 11px;
+  color: var(--ink3);
+  line-height: 1.8;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.disclaimer-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+</style>
+</head>
+<body>
+
+<!-- 헤더 -->
+<div class="header">
+  <div class="header-left">
+    <div class="header-eyebrow">AINOS · KB라이프 생명보험 AI</div>
+    <div class="header-title">맞춤형 보험 추천 리포트</div>
+  </div>
+  <div class="header-right">
+    분석 대상: 김민준 (가상 인물)<br>
+    분석 기준: KB라이프 공시 데이터 7개 상품<br>
+    PROTOTYPE · 예시 화면
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- 사이드바 -->
+  <div class="sidebar">
+    <div class="profile-card">
+      <div class="profile-head">
+        <div class="avatar">👨</div>
+        <div>
+          <div class="profile-name">김민준</div>
+          <div class="profile-sub">38세 · 남성 · 사무직</div>
+        </div>
+      </div>
+
+      <div class="section-title">기본 정보</div>
+      <div class="info-list">
+        <div class="info-item">
+          <span class="info-key">연 소득</span>
+          <span class="info-val">6,500만원</span>
+        </div>
+        <div class="info-item">
+          <span class="info-key">가족</span>
+          <span class="info-val">배우자 + 자녀 1</span>
+        </div>
+        <div class="info-item">
+          <span class="info-key">희망 월납입</span>
+          <span class="info-val ok">15만원 이하</span>
+        </div>
+        <div class="info-item">
+          <span class="info-key">현재 보험</span>
+          <span class="info-val">미가입</span>
+        </div>
+      </div>
+
+      <div class="section-title">건강 정보</div>
+      <div class="info-list">
+        <div class="info-item">
+          <span class="info-key">흡연</span>
+          <span class="info-val danger">10년 흡연</span>
+        </div>
+        <div class="info-item">
+          <span class="info-key">BMI</span>
+          <span class="info-val warn">27.4 (경도 비만)</span>
+        </div>
+        <div class="info-item">
+          <span class="info-key">가족력</span>
+          <span class="info-val danger">부친 대장암</span>
+        </div>
+        <div class="info-item">
+          <span class="info-key">기저질환</span>
+          <span class="info-val ok">없음</span>
+        </div>
+        <div class="info-item">
+          <span class="info-key">혈압/혈당</span>
+          <span class="info-val warn">경계 수치</span>
+        </div>
+      </div>
+
+      <div class="section-title">건강 위험 요인</div>
+      <div class="tag-group">
+        <span class="chip risk">암 고위험</span>
+        <span class="chip risk">심혈관 주의</span>
+        <span class="chip risk">흡연 관련</span>
+        <span class="chip risk">비만 관련</span>
+      </div>
+
+      <div class="section-title">가입 니즈</div>
+      <div class="tag-group">
+        <span class="chip need">암 진단 보장</span>
+        <span class="chip need">가족 생계 보호</span>
+        <span class="chip need">합리적 보험료</span>
+        <span class="chip need">노후 준비</span>
+      </div>
+
+      <div class="ai-insight">
+        <div class="ai-insight-label">AI 분석 요약</div>
+        <p>흡연력 10년 + 부친 대장암으로 <strong>암 발병률 동연령 대비 약 2.3배 높음.</strong> 38세는 비갱신 암보험 가입의 <strong>마지노선 연령</strong>으로, 지금이 최적 타이밍. 가장(家長) 역할상 사망보험금 확보도 시급. 노후 대비는 보장성 우선 후 검토 권장.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 메인 -->
+  <div class="main">
+
+    <!-- 순위 결정 기준 -->
+    <div class="ranking-rationale">
+      <div class="rationale-title">순위 결정 기준 — 왜 이 순서인가?</div>
+      <div class="rationale-grid">
+        <div class="rationale-item">
+          <div class="rationale-item-title">① 위험 긴급도</div>
+          <p>현재 건강 위험 중 <strong>가장 시급한 것</strong>을 먼저 커버. 암 위험이 가장 높아 암보험이 1순위. 사망 위험은 그 다음, 노후는 현재 긴급도 낮음.</p>
+        </div>
+        <div class="rationale-item">
+          <div class="rationale-item-title">② 예산 효율성</div>
+          <p>희망 월납입 15만원 이내에서 <strong>보장 커버리지 대비 보험료 효율</strong>이 높은 순서. 비싸도 필요하면 상위 순위, 저렴해도 현재 불필요하면 하위.</p>
+        </div>
+        <div class="rationale-item">
+          <div class="rationale-item-title">③ 가족 보호 가중치</div>
+          <p>배우자 + 자녀 부양 의무 고려. <strong>본인 사망 시 가족 생계 공백</strong>을 메우는 상품은 가중치 부여. 본인만의 리스크 상품은 상대적 하위.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 카드 스택 -->
+    <div class="card-stack">
+
+      <!-- ===== 1순위 ===== -->
+      <div class="card">
+        <div class="card-top-stripe"></div>
+        <div class="card-header">
+          <div class="rank-block">
+            <div class="rank-num">1</div>
+            <div class="rank-label">최우선</div>
+          </div>
+          <div>
+            <div class="product-type">암보험 · 비갱신형 · 온라인</div>
+            <div class="product-name">KB 착한암보험 무배당</div>
+            <div class="product-tags">
+              <span class="ptag good">비갱신 → 보험료 고정</span>
+              <span class="ptag good">100세 만기</span>
+              <span class="ptag good">미지급형 선택 시 보험료↓</span>
+              <span class="ptag caution">면책기간 90일</span>
+            </div>
+          </div>
+          <div class="fit-block">
+            <div class="fit-label">Fit Score</div>
+            <div class="fit-score">97<span>/100</span></div>
+          </div>
+        </div>
+        <div class="card-body">
+          <!-- 상품 특징 -->
+          <div class="card-section">
+            <div class="cs-label"><span class="dot"></span>상품 특징</div>
+            <div class="cs-text">
+              <strong>비갱신형</strong>으로 지금 납입 보험료가 100세까지 오르지 않음. 표준형과 <strong>해약환급금 미지급형</strong> 중 선택 가능 — 미지급형 선택 시 보험료 약 4~6% 절감. 온라인 전용이라 설계사 수수료 없이 <strong>최저가 수준</strong>.
+            </div>
+          </div>
+          <!-- 핏한 이유 -->
+          <div class="card-section">
+            <div class="cs-label"><span class="dot"></span>이 고객에게 맞는 이유</div>
+            <div class="cs-text">
+              부친 <strong>대장암 이력</strong>으로 유전적 암 위험이 높고, <strong>10년 흡연</strong>으로 폐암·구강암 위험도 상승. <span class="highlight">38세는 비갱신형 암보험 가입 가능 연령(15~60세)의 중간</span>이지만, 40세 이후로 갈수록 보험료가 급등해 지금이 최적 타이밍.
+            </div>
+          </div>
+          <!-- 1순위인 이유 -->
+          <div class="card-section">
+            <div class="cs-label"><span class="dot"></span>다른 상품 대비 1순위인 이유</div>
+            <div class="cs-text">
+              <strong>위험 긴급도 최고.</strong> 현재 가장 발병 확률이 높은 위험이 '암'이고, 이를 가장 효율적으로 커버하는 상품. 월 <strong>1만3천원대</strong>로 100세까지 암 진단금 확보 — 예산 대비 보장 효율이 7개 상품 중 최상위.
+            </div>
+          </div>
+          <!-- 지표 -->
+          <div class="card-section">
+            <div class="cs-label"><span class="dot"></span>주요 지표</div>
+            <table class="metric-table">
+              <tr><td>월 보험료</td><td>약 13,200원</td></tr>
+              <tr><td>암 진단금</td><td>1,000만원~</td></tr>
+              <tr><td>고액암</td><td>200% 지급</td></tr>
+              <tr><td>보험 기간</td><td>100세 만기</td></tr>
+              <tr><td>납입 기간</td><td>20년납 선택</td></tr>
+            </table>
+          </div>
+        </div>
+        <!-- 보장 내역 펼침 -->
+        <div class="card-expanded">
+          <div class="expanded-header">주요 보장 내역 (가입금액 1,000만원 기준)</div>
+          <div class="coverage-row">
+            <div class="cov-pill">
+              <span class="cov-type">일반암 진단금</span>
+              <div class="cov-sep"></div>
+              <span class="cov-amount">1,000만원</span>
+            </div>
+            <div class="cov-pill">
+              <span class="cov-type">고액암 (위암·대장암 등)</span>
+              <div class="cov-sep"></div>
+              <span class="cov-amount">2,000만원</span>
+            </div>
+            <div class="cov-pill">
+              <span class="cov-type">유사암 진단금</span>
+              <div class="cov-sep"></div>
+              <span class="cov-amount">200만원</span>
+            </div>
+            <div class="cov-pill">
+              <span class="cov-type">소액암 진단금</span>
+              <div class="cov-sep"></div>
+              <span class="cov-amount">100만원</span>
+            </div>
+            <div class="cov-pill">
+              <span class="cov-type">면책기간</span>
+              <div class="cov-sep"></div>
+              <span class="cov-amount">90일</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== 2순위 ===== -->
+      <div class="card">
+        <div class="card-top-stripe"></div>
+        <div class="card-header">
+          <div class="rank-block">
+            <div class="rank-num">2</div>
+            <div class="rank-label">강력 추천</div>
+          </div>
+          <div>
+            <div class="product-type">종신보험 · 오프라인</div>
+            <div class="product-name">KB 라이프 파트너 종신보험 무배당</div>
+            <div class="product-tags">
+              <span class="ptag good">평생 사망 보장</span>
+              <span class="ptag good">일반·간편심사 선택</span>
+              <span class="ptag neutral">해약환급금 일부지급</span>
+              <span class="ptag caution">보험료 상대적 높음</span>
+            </div>
+          </div>
+          <div class="fit-block">
+            <div class="fit-label">Fit Score</div>
+            <div class="fit-score">88<span>/100</span></div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-section">
+            <div class="cs-label"><span class="dot"></span>상품 특징</div>
+            <div class="cs-text">
+              <strong>종신(평생) 사망 보장</strong>으로 언제 사망해도 보험금 지급. 해약환급금 일부지급형으로 <strong>일반 종신 대비 보험료 절감</strong>. 건강 상태에 따라 일반 또는 간편심사형 선택 가능. 재해사망 특약 추가 가능.
+            </div>
+          </div>
+          <div class="card-section">
+            <div class="cs-label"><span class="dot"></span>이 고객에게 맞는 이유</div>
+            <div class="cs-text">
+              <strong>배우자 + 자녀</strong>를 부양 중인 가장으로, 갑작스러운 사망 시 가족의 생계 공백이 발생. 38세에 가입하면 <strong>보험료가 상대적으로 낮은 시점</strong>에 확정. 1순위 암보험과 조합하면 암 사망 시 진단금 + 사망보험금 이중 수령 가능.
+            </div>
+          </div>
+          <div class="card-section">
+            <div class="cs-label"><span class="dot"></span>1순위가 아닌 2순위인 이유</div>
+            <div class="cs-text">
+              사망 리스크보다 <strong>암 발병 리스크가 더 즉각적이고 높음.</strong> 또한 월 보험료가 상대적으로 높아 예산 효율 측면에서 1순위 암보험보다 뒤처짐. 단, 가족 부양 의무상 <strong>반드시 검토해야 할 2번째 우선순위.</strong>
+            </div>
+          </div>
+          <div class="card-section">
+            <div class="cs-label"><span class="dot"></span>주요 지표</div>
+            <table class="metric-table">
+              <tr><td>월 보험료</td><td>약 85,000원~</td></tr>
+              <tr><td>사망 보험금</td><td>1억원~</td></tr>
+              <tr><td>가입 연령</td><td>15~75세</td></tr>
+              <tr><td>납입 기간</td><td>5~30년납 선택</td></tr>
+              <tr><td>보장 기간</td><td>종신 (평생)</td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== 3순위 ===== -->
+      <div class="card">
+        <div class="card-top-stripe"></div>
+        <div class="card-header">
+          <div class="rank-block">
+            <div class="rank-num">3</div>
+            <div class="rank-label">추천</div>
+          </div>
+          <div>
+            <div class="product-type">건강보험 · 온라인</div>
+            <div class="product-name">KB 딱좋은 e-건강보험 무배당</div>
+            <div class="product-tags">
+              <span class="ptag good">3대질병 통합 보장</span>
+              <span class="ptag good">수술·입원비 포함</span>
+              <span class="ptag caution">갱신형 → 보험료 추후 인상</span>
+              <span class="ptag neutral">간편심사형 선택 가능</span>
+            </div>
+          </div>
+          <div class="fit-block">
+            <div class="fit-label">Fit Score</div>
+            <div class="fit-score">79<span>/100</span></div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-section">
+            <div class="cs-label"><span class="dot"></span>상품 특징</div>
+            <div class="cs-text">
+              암 외에 <strong>뇌졸중·심근경색</strong>까지 3대 질병을 하나로 커버. 수술비·입원비·간병비까지 포함된 종합형. <strong>갱신형</strong>이라 초기 보험료는 낮지만 3~5년마다 인상. 간편심사형(355)은 건강 고지 부담 완화.
+            </div>
+          </div>
+          <div class="card-section">
+            <div class="cs-label"><span class="dot"></span>이 고객에게 맞는 이유</div>
+            <div class="cs-text">
+              흡연 + 경도 비만으로 <strong>심혈관 질환 위험</strong>도 상당히 높음. 1순위 암보험은 암 진단금만 보장하지만, 이 상품은 <strong>뇌심까지 추가 보장</strong>하고 입원·수술비도 지급해 실제 치료비 공백을 메움.
+            </div>
+          </div>
+          <div class="card-section">
+            <div class="cs-label"><span class="dot"></span>1·2순위가 아닌 3순위인 이유</div>
+            <div class="cs-text">
+              <strong>갱신형이라는 치명적 단점.</strong> 나중에 건강이 나빠질수록 보험료가 급등하는 구조. 또한 암 보장이 1순위 상품보다 제한적. 1·2순위 가입 후 <strong>예산 여유가 있을 때</strong> 추가하는 것이 최적.
+            </div>
+          </div>
+          <div class="card-section">
+            <div class="cs-label"><span class="dot"></span>주요 지표</div>
+            <table class="metric-table">
+              <tr><td>월 보험료</td><td>약 45,000원~</td></tr>
+              <tr><td>보장 범위</td><td>3대 질병</td></tr>
+              <tr><td>갱신 주기</td><td>3년 또는 5년</td></tr>
+              <tr><td>보장 기간</td><td>100세까지 자동갱신</td></tr>
+              <tr><td>가입 연령</td><td>20~64세</td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== 4순위 ===== -->
+      <div class="card">
+        <div class="card-top-stripe"></div>
+        <div class="card-header">
+          <div class="rank-block">
+            <div class="rank-num">4</div>
+            <div class="rank-label">고려</div>
+          </div>
+          <div>
+            <div class="product-type">정기보험 · 온라인</div>
+            <div class="product-name">KB 착한정기보험II 무배당</div>
+            <div class="product-tags">
+              <span class="ptag good">업계 최저가 수준</span>
+              <span class="ptag good">최대 5억 사망보장</span>
+              <span class="ptag caution">만기 후 보장 소멸</span>
+              <span class="ptag neutral">10~30년 만기 선택</span>
+            </div>
+          </div>
+          <div class="fit-block">
+            <div class="fit-label">Fit Score</div>
+            <div class="fit-score">71<span>/100</span></div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-section">
+            <div class="cs-label"><span class="dot"></span>상품 특징</div>
+            <div class="cs-text">
+              일정 기간(10·15·20·30년)만 사망을 보장하는 <strong>기간한정 사망보험.</strong> 업계 최저가 수준의 보험료. 보험다모아 최저가 1위 이력. 3천만~5억원 사망보험금 선택 가능. <strong>저해지형</strong>으로 추가 보험료 절감.
+            </div>
+          </div>
+          <div class="card-section">
+            <div class="cs-label"><span class="dot"></span>이 고객에게 맞는 이유</div>
+            <div class="cs-text">
+              자녀가 아직 어린 시기, <strong>향후 20년간의 사망 보장</strong>이 필요한 상황. 2순위 종신보험 대비 <strong>보험료가 80% 이상 저렴</strong>해 예산 부담이 훨씬 작음. 종신보험 가입이 부담스럽다면 현실적 대안.
+            </div>
+          </div>
+          <div class="card-section">
+            <div class="cs-label"><span class="dot"></span>2순위(종신보험)가 아닌 4순위인 이유</div>
+            <div class="cs-text">
+              <strong>만기 후 보장이 사라지는 구조.</strong> 20년 후 건강이 나빠진 상태에서 재가입이 불가능할 수 있음. 장기적으로 종신보험이 훨씬 유리. <strong>단기 예산 절감용</strong>으로는 유효하나 최선의 선택은 아님.
+            </div>
+          </div>
+          <div class="card-section">
+            <div class="cs-label"><span class="dot"></span>주요 지표</div>
+            <table class="metric-table">
+              <tr><td>월 보험료</td><td>약 18,000원~</td></tr>
+              <tr><td>사망 보험금</td><td>3천만~5억원</td></tr>
+              <tr><td>만기 선택</td><td>10/15/20/30년</td></tr>
+              <tr><td>가입 연령</td><td>19~70세</td></tr>
+              <tr><td>형태</td><td>저해지·무해지 선택</td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== 5순위 ===== -->
+      <div class="card">
+        <div class="card-top-stripe"></div>
+        <div class="card-header">
+          <div class="rank-block">
+            <div class="rank-num">5</div>
+            <div class="rank-label">참고</div>
+          </div>
+          <div>
+            <div class="product-type">연금보험 · 온라인 · 저축성</div>
+            <div class="product-name">KB 하이파이브 평생연금보험 무배당</div>
+            <div class="product-tags">
+              <span class="ptag good">확정이율 3.5% (5년)</span>
+              <span class="ptag good">비과세 혜택</span>
+              <span class="ptag caution">보장성 아님 — 저축성</span>
+              <span class="ptag caution">단기 해지 시 원금 손실</span>
+            </div>
+          </div>
+          <div class="fit-block">
+            <div class="fit-label">Fit Score</div>
+            <div class="fit-score">58<span>/100</span></div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-section">
+            <div class="cs-label"><span class="dot"></span>상품 특징</div>
+            <div class="cs-text">
+              질병·사망 보장이 없는 <strong>순수 저축형 상품.</strong> 5년간 확정이율 3.5% 적용 후 공시이율 전환. 비과세 혜택(5년납·10년 유지 시). 종신/확정/상속연금 형태 선택 가능. 장기유지 보너스 최대 400%.
+            </div>
+          </div>
+          <div class="card-section">
+            <div class="cs-label"><span class="dot"></span>이 고객에게 해당하는 측면</div>
+            <div class="cs-text">
+              38세는 <strong>노후 준비를 시작해야 할 시점</strong>이기도 함. 비과세 혜택과 확정이율은 예금보다 유리할 수 있음. 1~4순위 보장성 보험을 모두 가입하고 <strong>예산 여유가 생길 경우</strong> 장기 관점에서 검토 가능.
+            </div>
+          </div>
+          <div class="card-section">
+            <div class="cs-label"><span class="dot"></span>1~4순위가 아닌 5순위인 이유</div>
+            <div class="cs-text">
+              <strong>가장 시급한 문제를 해결하지 못함.</strong> 현재 김민준에게 필요한 것은 '암 진단금'과 '가족 생계 보호'인데, 이 상품은 둘 다 제공하지 않는 저축 상품. <strong>보장 공백이 있는 상태에서 저축 먼저 하는 것은 비효율적.</strong>
+            </div>
+          </div>
+          <div class="card-section">
+            <div class="cs-label"><span class="dot"></span>주요 지표</div>
+            <table class="metric-table">
+              <tr><td>최소 월납입</td><td>30,000원~</td></tr>
+              <tr><td>확정이율</td><td>3.5% (5년간)</td></tr>
+              <tr><td>비과세 요건</td><td>5년납·10년 유지</td></tr>
+              <tr><td>연금 형태</td><td>종신·확정·상속</td></tr>
+              <tr><td>보장 여부</td><td>없음 (순수저축)</td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /card-stack -->
+
+    <div class="disclaimer">
+      <div class="disclaimer-icon">⚠</div>
+      <div>본 화면은 산학협력 프로젝트의 프로토타입 예시 화면이며, 실제 보험 판매·청약·계약 행위가 아닙니다. 표시된 보험료 및 보장 내역은 설명 목적의 예시값으로 실제와 다를 수 있습니다. AI는 정보 제공 및 비교를 보조하며, 최종 청약은 보험사를 통해 진행됩니다. 가입 전 반드시 약관 및 상품설명서를 확인하시기 바랍니다.</div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /page -->
+
+</body>
+</html>
